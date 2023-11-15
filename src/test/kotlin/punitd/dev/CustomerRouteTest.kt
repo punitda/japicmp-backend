@@ -43,7 +43,7 @@ class CustomerRouteTest {
 
     @Test
     fun testGetCustomer() = testApplication {
-        val response = client.get("/customer")
+        val response = client.get("/customers")
         assertEquals(
             encodeToString(ListSerializer(Customer.serializer()), customerStorage),
             response.bodyAsText()
@@ -54,7 +54,7 @@ class CustomerRouteTest {
     @Test
     fun testGetCustomerNotFound() = testApplication {
         customerStorage.clear()
-        val response = client.get("/customer")
+        val response = client.get("/customers")
         assertEquals(
             NO_CUSTOMERS_FOUND,
             response.bodyAsText()
@@ -64,7 +64,7 @@ class CustomerRouteTest {
 
     @Test
     fun testGetCustomerById() = testApplication {
-        val response = client.get("/customer/${customer1.id}")
+        val response = client.get("/customers/${customer1.id}")
         assertEquals(
             encodeToString(Customer.serializer(), customer1),
             response.bodyAsText()
@@ -75,7 +75,7 @@ class CustomerRouteTest {
     @Test
     fun testGetCustomerByIncorrectId() = testApplication {
         val id = "1000"
-        val response = client.get("/customer/${id}")
+        val response = client.get("/customers/${id}")
         assertEquals(
             "$NO_CUSTOMER_WITH_ID $id",
             response.bodyAsText()
@@ -86,7 +86,7 @@ class CustomerRouteTest {
     @Test
     fun testCreateCustomer() = testApplication {
         customerStorage.clear()
-        val response = client.post("/customer") {
+        val response = client.post("/customers") {
             contentType(ContentType.Application.Json)
             setBody(encodeToString(Customer.serializer(), customer1))
         }
@@ -100,7 +100,7 @@ class CustomerRouteTest {
     @Test
     fun testCreateCustomerWithInvalidRequestBody() = testApplication {
         customerStorage.clear()
-        val response = client.post("/customer") {
+        val response = client.post("/customers") {
             contentType(ContentType.Application.Json)
         }
         assertEquals(
@@ -112,7 +112,7 @@ class CustomerRouteTest {
 
     @Test
     fun testDeleteCustomer() = testApplication {
-        val response = client.delete("/customer/${customer1.id}")
+        val response = client.delete("/customers/${customer1.id}")
         assertEquals(
             CUSTOMER_REMOVED_SUCCESSFULLY,
             response.bodyAsText()
@@ -123,7 +123,7 @@ class CustomerRouteTest {
     @Test
     fun testDeleteCustomerWithInvalidCustomer() = testApplication {
         val invalidCustomerId = "1000"
-        val response = client.delete("/customer/${invalidCustomerId}")
+        val response = client.delete("/customers/${invalidCustomerId}")
         assertEquals(
             CUSTOMER_NOT_FOUND,
             response.bodyAsText()
@@ -133,7 +133,7 @@ class CustomerRouteTest {
 
     @Test
     fun testDeleteCustomerWithNoIdPassed() = testApplication {
-        val response = client.delete("/customer")
+        val response = client.delete("/customers")
         assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 }

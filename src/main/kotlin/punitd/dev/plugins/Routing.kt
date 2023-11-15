@@ -6,10 +6,6 @@ import io.ktor.server.routing.*
 import punitd.dev.routes.*
 
 fun Application.configureRouting() {
-    routing {
-        customerRouting()
-        listOrdersRoute()
-        getOrderRoute()
-        totalizeOrderRoute()
-    }
+    customerRoutes()
+    orderRoutes()
 }
