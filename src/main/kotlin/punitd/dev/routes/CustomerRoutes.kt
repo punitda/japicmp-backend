@@ -3,13 +3,15 @@ package punitd.dev.routes
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.resources.*
-import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import punitd.dev.models.Customer
 import punitd.dev.models.customerStorage
+import io.ktor.server.resources.post
+import punitd.dev.util.MissingFieldException
 
 const val NO_CUSTOMERS_FOUND = "No customers found"
 const val MISSING_CUSTOMER_ID = "Missing id in parameters"
@@ -17,6 +19,7 @@ const val NO_CUSTOMER_WITH_ID = "No customer with id"
 const val CUSTOMER_STORED_SUCCESSFULLY = "Customer stored successfully"
 const val CUSTOMER_REMOVED_SUCCESSFULLY = "Customer removed successfully"
 const val INVALID_REQUEST_BODY = "Invalid request body"
+const val MISSING_FIELDS_IN_REQUEST_BODY = "Missing fields in request body"
 const val CUSTOMER_NOT_FOUND = "No customer found"
 
 
@@ -66,14 +69,10 @@ fun Route.getCustomerRoute() {
 
 fun Route.addCustomerRoute() {
     post<Customers> {
-        try {
-            val customer = call.receive<Customer>()
-            customerStorage.add(customer)
-            call.respondText(text = CUSTOMER_STORED_SUCCESSFULLY, status = HttpStatusCode.Created)
-        } catch (e: ContentTransformationException) {
-            call.respondText(text = INVALID_REQUEST_BODY, status = HttpStatusCode.BadRequest)
-        }
-
+        val customer = runCatching { call.receiveNullable<Customer>() }.getOrNull()
+            ?: throw MissingFieldException(MISSING_FIELDS_IN_REQUEST_BODY)
+        customerStorage.add(customer)
+        call.respondText(text = CUSTOMER_STORED_SUCCESSFULLY, status = HttpStatusCode.Created)
     }
 }
 

@@ -104,7 +104,7 @@ class CustomerRouteTest {
             contentType(ContentType.Application.Json)
         }
         assertEquals(
-            INVALID_REQUEST_BODY,
+            MISSING_FIELDS_IN_REQUEST_BODY,
             response.bodyAsText()
         )
         assertEquals(HttpStatusCode.BadRequest, response.status)
