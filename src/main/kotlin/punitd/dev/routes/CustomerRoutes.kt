@@ -3,7 +3,6 @@ package punitd.dev.routes
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
@@ -18,7 +17,6 @@ const val MISSING_CUSTOMER_ID = "Missing id in parameters"
 const val NO_CUSTOMER_WITH_ID = "No customer with id"
 const val CUSTOMER_STORED_SUCCESSFULLY = "Customer stored successfully"
 const val CUSTOMER_REMOVED_SUCCESSFULLY = "Customer removed successfully"
-const val INVALID_REQUEST_BODY = "Invalid request body"
 const val MISSING_FIELDS_IN_REQUEST_BODY = "Missing fields in request body"
 const val CUSTOMER_NOT_FOUND = "No customer found"
 
