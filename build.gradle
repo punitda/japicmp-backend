@@ -6,10 +6,32 @@ plugins {
 
 group "punitd.dev"
 version "0.0.1"
-mainClassName = "punitd.dev.ApplicationKt"
 
 def isDevelopment = project.ext.has("development")
-applicationDefaultJvmArgs = ["-Dio.ktor.development=$isDevelopment"]
+
+application {
+    mainClassName = "punitd.dev.ApplicationKt"
+    applicationDefaultJvmArgs = ["-Dio.ktor.development=$isDevelopment"]
+}
+
+ktor {
+    fatJar {
+        archiveFileName = "fat.jar"
+    }
+
+    docker {
+        jreVersion.set(JavaVersion.VERSION_17)
+        localImageName.set("japicmp-backend")
+        imageTag.set("0.0.1-preview")
+        portMappings.set([
+                new io.ktor.plugin.features.DockerPortMapping(
+                        8080,
+                        8080,
+                        io.ktor.plugin.features.DockerPortMappingProtocol.TCP
+                )
+        ])
+    }
+}
 
 repositories {
     mavenCentral()
