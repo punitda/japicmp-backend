@@ -48,7 +48,7 @@ object FileManager {
         return if (isAar) {
             Pair(
                 aarToClassesJar(oldArtifact),
-                aarToClassesJar(oldArtifact)
+                aarToClassesJar(newArtifact)
             )
         } else {
             Pair(oldArtifact, newArtifact)
