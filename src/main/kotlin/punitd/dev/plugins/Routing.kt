@@ -8,4 +8,5 @@ import punitd.dev.routes.*
 fun Application.configureRouting() {
     customerRoutes()
     orderRoutes()
+    reportRoutes()
 }
