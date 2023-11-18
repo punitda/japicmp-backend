@@ -13,22 +13,22 @@ import kotlin.test.assertNotNull
 
 class ReportRouteTest {
 
-    val validAarPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
+    private val validAarPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
         oldPackageName = "com.stripe:stripe-android:18.0.0",
         newPackageName = "com.stripe:stripe-android:19.0.0"
     )
 
-    val validJarPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
+    private val validJarPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
         oldPackageName = "com.squareup.okhttp3:okhttp:4.11.0",
         newPackageName = "com.squareup.okhttp3:okhttp:4.12.0"
     )
 
-    val unavailablePackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
+    private val unavailablePackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
         oldPackageName = "com.x:x:1.0.0",
         newPackageName = "com.x:x:2.0.0"
     )
 
-    val invalidPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
+    private val invalidPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
         oldPackageName = "com:okhttp",
         newPackageName = "com:okhttp"
     )
