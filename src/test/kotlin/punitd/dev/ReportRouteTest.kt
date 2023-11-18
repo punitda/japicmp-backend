@@ -11,7 +11,7 @@ import punitd.dev.util.Constants
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class ReportsRouteTest {
+class ReportRouteTest {
 
     val validPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
         oldPackageName = "com.stripe:stripe-android:18.0.0",
