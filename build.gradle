@@ -1,14 +1,37 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.9.20'
     id 'io.ktor.plugin' version '2.3.6'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.20'
 }
 
 group "punitd.dev"
 version "0.0.1"
-mainClassName = "punitd.dev.ApplicationKt"
 
 def isDevelopment = project.ext.has("development")
-applicationDefaultJvmArgs = ["-Dio.ktor.development=$isDevelopment"]
+
+application {
+    mainClassName = "punitd.dev.ApplicationKt"
+    applicationDefaultJvmArgs = ["-Dio.ktor.development=$isDevelopment"]
+}
+
+ktor {
+    fatJar {
+        archiveFileName = "fat.jar"
+    }
+
+    docker {
+        jreVersion.set(JavaVersion.VERSION_17)
+        localImageName.set("japicmp-backend")
+        imageTag.set("0.0.1-preview")
+        portMappings.set([
+                new io.ktor.plugin.features.DockerPortMapping(
+                        8080,
+                        8080,
+                        io.ktor.plugin.features.DockerPortMappingProtocol.TCP
+                )
+        ])
+    }
+}
 
 repositories {
     mavenCentral()
@@ -17,7 +40,32 @@ repositories {
 dependencies {
     implementation "io.ktor:ktor-server-core-jvm"
     implementation "io.ktor:ktor-server-netty-jvm"
+
+    // Client
+    implementation "io.ktor:ktor-client-core:$ktor_version"
+    implementation "io.ktor:ktor-client-okhttp:$ktor_version"
+    implementation "io.ktor:ktor-client-content-negotiation:$ktor_version"
+    implementation "io.ktor:ktor-serialization-kotlinx-json:$ktor_version"
+
+
+    // Plugins
+    implementation "io.ktor:ktor-server-content-negotiation-jvm"
+    implementation "io.ktor:ktor-server-resources:$ktor_version"
+    implementation "io.ktor:ktor-server-status-pages:$ktor_version"
+
+    // Logging
     implementation "ch.qos.logback:logback-classic:$logback_version"
+
+    // Others
+    implementation "io.ktor:ktor-server-config-yaml"
+    implementation 'io.ktor:ktor-server-host-common-jvm:2.3.6'
+    implementation 'io.ktor:ktor-server-status-pages-jvm:2.3.6'
+    implementation 'io.ktor:ktor-client-okhttp-jvm:2.3.6'
+    implementation 'com.github.siom79.japicmp:japicmp:0.18.3'
+
+
+
+    // Testing
     testImplementation "io.ktor:ktor-server-tests-jvm"
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
 }
