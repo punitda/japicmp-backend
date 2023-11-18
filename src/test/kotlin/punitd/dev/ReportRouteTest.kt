@@ -13,9 +13,14 @@ import kotlin.test.assertNotNull
 
 class ReportRouteTest {
 
-    val validPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
+    val validAarPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
         oldPackageName = "com.stripe:stripe-android:18.0.0",
         newPackageName = "com.stripe:stripe-android:19.0.0"
+    )
+
+    val validJarPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
+        oldPackageName = "com.squareup.okhttp3:okhttp:4.11.0",
+        newPackageName = "com.squareup.okhttp3:okhttp:4.12.0"
     )
 
     val unavailablePackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
@@ -29,13 +34,28 @@ class ReportRouteTest {
     )
 
     @Test
-    fun testGenerateReport() = testApplication {
+    fun testGenerateReportForAar() = testApplication {
         val response = client.post("/report/maven") {
             contentType(ContentType.Application.Json)
             setBody(
                 Json.encodeToString(
                     GenerateReportByPackageNameRequestBody.serializer(),
-                    validPackageNamesInRequestBody
+                    validAarPackageNamesInRequestBody
+                )
+            )
+        }
+        assertNotNull(response.bodyAsText())
+        assertEquals(HttpStatusCode.OK, response.status)
+    }
+
+    @Test
+    fun testGenerateReportForJar() = testApplication {
+        val response = client.post("/report/maven") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                Json.encodeToString(
+                    GenerateReportByPackageNameRequestBody.serializer(),
+                    validJarPackageNamesInRequestBody
                 )
             )
         }
