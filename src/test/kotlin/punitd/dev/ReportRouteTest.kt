@@ -6,6 +6,7 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
 import org.junit.Test
+import punitd.dev.models.requestbody.GenerateReportByFilesRequestBody
 import punitd.dev.models.requestbody.GenerateReportByPackageNameRequestBody
 import punitd.dev.util.Constants
 import kotlin.test.assertEquals
@@ -91,5 +92,45 @@ class ReportRouteTest {
         }
         assertEquals(Constants.INVALID_PACKAGE_NAME, response.bodyAsText())
         assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun testGenerateReportFileForAar() = testApplication {
+        val generateReportByFilesRequestBody = GenerateReportByFilesRequestBody(
+            oldFileKeyName = "stripe-android-17.0.0.aar",
+            oldVersion = "17.0.0",
+            newFileKeyName = "stripe-android-18.0.0.aar",
+            newVersion = "18.0.0"
+        )
+        val resposne = client.post("/report/file") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                Json.encodeToString(
+                    GenerateReportByFilesRequestBody.serializer(),
+                    generateReportByFilesRequestBody
+                )
+            )
+        }
+        println("Body : ${resposne.bodyAsText()}")
+    }
+
+    @Test
+    fun testGenerateReportFileForJar() = testApplication {
+        val generateReportByFilesRequestBody = GenerateReportByFilesRequestBody(
+            oldFileKeyName = "okhttp-4.0.0.jar",
+            oldVersion = "4.0.0",
+            newFileKeyName = "okhttp-4.11.0.jar",
+            newVersion = "4.11.0"
+        )
+        val resposne = client.post("/report/file") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                Json.encodeToString(
+                    GenerateReportByFilesRequestBody.serializer(),
+                    generateReportByFilesRequestBody
+                )
+            )
+        }
+        println("Body : ${resposne.bodyAsText()}")
     }
 }
