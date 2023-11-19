@@ -2,7 +2,6 @@ package punitd.dev.routes
 
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.S3Object
-import io.ktor.client.*
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
