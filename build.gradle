@@ -66,6 +66,8 @@ dependencies {
     implementation 'com.sksamuel.hoplite:hoplite-core:2.7.5'
     implementation 'com.sksamuel.hoplite:hoplite-json:2.7.5'
 
+    implementation "io.insert-koin:koin-ktor:$koin_version"
+    implementation "io.insert-koin:koin-logger-slf4j:$koin_version"
 
 
     // Testing
