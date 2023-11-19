@@ -13,6 +13,8 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
+import punitd.dev.repository.MavenRepository
+import punitd.dev.repository.MavenRepositoryImpl
 import punitd.dev.util.EnvConfig
 import kotlin.math.sin
 
@@ -49,4 +51,6 @@ val appModule = module {
             }
         }
     }
+
+    factory<MavenRepository> { MavenRepositoryImpl(get()) }
 }

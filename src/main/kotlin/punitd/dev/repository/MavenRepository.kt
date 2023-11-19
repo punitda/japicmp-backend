@@ -12,9 +12,16 @@ import punitd.dev.models.response.ArtifactResult
 import punitd.dev.models.response.MavenSearchResponse
 import java.io.File
 
-class MavenRepository(private val client: HttpClient) {
+interface MavenRepository {
+    suspend fun searchPackages(oldPackageName: String, newPackageName: String): List<MavenSearchResponse?>
+    suspend fun downloadFiles(oldArtifactResult: ArtifactResult, newArtifactResult: ArtifactResult): List<File?>
 
-    suspend fun searchPackages(oldPackageName: String, newPackageName: String): List<MavenSearchResponse?> =
+
+}
+
+class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
+
+    override suspend fun searchPackages(oldPackageName: String, newPackageName: String): List<MavenSearchResponse?> =
         coroutineScope {
             val oldPackageSearchResponse = async { search(oldPackageName) }
             val newPackageSearchResponse = async { search(newPackageName) }
@@ -24,7 +31,10 @@ class MavenRepository(private val client: HttpClient) {
             )
         }
 
-    suspend fun downloadFiles(oldArtifactResult: ArtifactResult, newArtifactResult: ArtifactResult): List<File?> =
+    override suspend fun downloadFiles(
+        oldArtifactResult: ArtifactResult,
+        newArtifactResult: ArtifactResult
+    ): List<File?> =
         coroutineScope {
             val oldFile = async { downloadFile(oldArtifactResult) }
             val newFile = async { downloadFile(newArtifactResult) }

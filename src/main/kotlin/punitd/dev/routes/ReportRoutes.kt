@@ -43,7 +43,7 @@ fun Application.reportRoutes() {
 }
 
 fun Route.createReportMaven() {
-    val client by inject<HttpClient>()
+    val mavenRepository by inject<MavenRepository>()
     post<ReportPath.Maven> {
         val requestBody = runCatching { call.receiveNullable<GenerateReportByPackageNameRequestBody>() }.getOrNull()
             ?: throw MissingFieldException("Missing fields in request body")
@@ -57,8 +57,6 @@ fun Route.createReportMaven() {
             )
         }
 
-        // Search packages on Maven
-        val mavenRepository = MavenRepository(client)
         val searchResults = mavenRepository.searchPackages(
             oldPackageName = oldPackageName,
             newPackageName = newPackageName
