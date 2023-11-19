@@ -1,14 +1,22 @@
 package punitd.dev
 
+import com.sksamuel.hoplite.ConfigLoaderBuilder
+import com.sksamuel.hoplite.addResourceSource
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
+import org.koin.ktor.plugin.Koin
+import org.koin.logger.slf4jLogger
+import punitd.dev.di.appModule
 import punitd.dev.plugins.configureRouting
 import punitd.dev.plugins.configureSerialization
+import punitd.dev.util.EnvConfig
 import punitd.dev.util.MissingFieldException
 
 fun main(args: Array<String>) {
@@ -16,6 +24,10 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    install(Koin) {
+        slf4jLogger()
+        modules(appModule)
+    }
     install(Resources)
     install(StatusPages) {
         exception<MissingFieldException> { call, cause ->
