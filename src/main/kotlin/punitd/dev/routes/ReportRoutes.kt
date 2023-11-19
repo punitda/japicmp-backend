@@ -1,22 +1,16 @@
 package punitd.dev.routes
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.client.builder.AwsClientBuilder
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.S3Object
 import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
 import io.ktor.resources.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.json.Json
+import org.koin.ktor.ext.inject
 import punitd.dev.manager.FileManager
 import punitd.dev.manager.FileManager.aarToClassesJar
 import punitd.dev.manager.ReportGenerator
@@ -49,16 +43,7 @@ fun Application.reportRoutes() {
 }
 
 fun Route.createReportMaven() {
-    val client = HttpClient(OkHttp) {
-        // Install ContentNegotiation plugin
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                }
-            )
-        }
-    }
+    val client by inject<HttpClient>()
     post<ReportPath.Maven> {
         val requestBody = runCatching { call.receiveNullable<GenerateReportByPackageNameRequestBody>() }.getOrNull()
             ?: throw MissingFieldException("Missing fields in request body")
@@ -132,16 +117,8 @@ fun Route.createReportMaven() {
 }
 
 fun Route.createReportFile() {
-    val credentials = BasicAWSCredentials(EnvConfig.AWS_ACCESS_KEY, EnvConfig.AWS_SECRET_KEY)
-    val s3 = AmazonS3ClientBuilder.standard()
-        .withCredentials(AWSStaticCredentialsProvider(credentials))
-        .withEndpointConfiguration(
-            AwsClientBuilder.EndpointConfiguration(
-                EnvConfig.AWS_SERVICE_ENDPOINT_R2,
-                EnvConfig.AWS_SIGNING_REGION
-            )
-        ).build()
-
+    val envConfig by inject<EnvConfig>()
+    val s3 by inject<AmazonS3>()
 
     post<ReportPath.File> {
         val requestBody = runCatching { call.receiveNullable<GenerateReportByFilesRequestBody>() }.getOrNull()
@@ -152,9 +129,9 @@ fun Route.createReportFile() {
         runCatching {
             val oldFilePath = "build/${oldFileKeyName}"
             val newFilePath = "build/${newFileKeyName}"
-            val olds3Object = s3.getObject(EnvConfig.BUCKET_NAME, oldFileKeyName)
+            val olds3Object = s3.getObject(envConfig.BUCKET_NAME, oldFileKeyName)
             convertS3ObjectToFile(olds3Object, oldFilePath)
-            val news3Object = s3.getObject(EnvConfig.BUCKET_NAME, newFileKeyName)
+            val news3Object = s3.getObject(envConfig.BUCKET_NAME, newFileKeyName)
             convertS3ObjectToFile(news3Object, newFilePath)
 
             val isAar = oldFileKeyName.contains("aar") && newFileKeyName.contains("aar")

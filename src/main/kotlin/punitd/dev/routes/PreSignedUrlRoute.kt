@@ -1,10 +1,7 @@
 package punitd.dev.routes
 
 import com.amazonaws.HttpMethod
-import com.amazonaws.auth.AWSStaticCredentialsProvider
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
-import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest
 import io.ktor.http.*
 import io.ktor.resources.*
@@ -13,6 +10,7 @@ import io.ktor.server.request.*
 import io.ktor.server.resources.post
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.koin.ktor.ext.inject
 import punitd.dev.models.requestbody.GeneratePreSignedUrlRequestBody
 import punitd.dev.models.response.GeneratePreSignedUrlResponse
 import punitd.dev.util.Constants
@@ -32,15 +30,8 @@ fun Application.preSignedUrlRoute() {
 }
 
 fun Route.generatePreSignedUrl() {
-    val credentials = BasicAWSCredentials(EnvConfig.AWS_ACCESS_KEY, EnvConfig.AWS_SECRET_KEY)
-    val s3 = AmazonS3ClientBuilder.standard()
-        .withCredentials(AWSStaticCredentialsProvider(credentials))
-        .withEndpointConfiguration(
-            EndpointConfiguration(
-                EnvConfig.AWS_SERVICE_ENDPOINT_R2,
-                EnvConfig.AWS_SIGNING_REGION
-            )
-        ).build()
+    val envConfig by inject<EnvConfig>()
+    val s3 by inject<AmazonS3>()
 
     post<PreSignedUrlPath> {
         val requestBody = runCatching { call.receiveNullable<GeneratePreSignedUrlRequestBody>() }.getOrNull()
@@ -49,7 +40,7 @@ fun Route.generatePreSignedUrl() {
         runCatching {
             val (fileName, fileType) = requestBody
             val expirationTime = Date().time + 1000 * 2 * 60 // 2 min expiration
-            val bucket = EnvConfig.BUCKET_NAME
+            val bucket = envConfig.BUCKET_NAME
             val objectKey = "${Date().time.toString().slugify()}-${fileName.slugify()}"
             val generatePresignedUrlRequest = GeneratePresignedUrlRequest(bucket, objectKey)
                 .withExpiration(Date(expirationTime))
