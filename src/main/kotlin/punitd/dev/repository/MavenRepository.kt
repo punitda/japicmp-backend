@@ -15,8 +15,6 @@ import java.io.File
 interface MavenRepository {
     suspend fun searchPackages(oldPackageName: String, newPackageName: String): List<MavenSearchResponse?>
     suspend fun downloadFiles(oldArtifactResult: ArtifactResult, newArtifactResult: ArtifactResult): List<File?>
-
-
 }
 
 class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {

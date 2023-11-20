@@ -16,7 +16,6 @@ import org.koin.dsl.module
 import punitd.dev.repository.MavenRepository
 import punitd.dev.repository.MavenRepositoryImpl
 import punitd.dev.util.EnvConfig
-import kotlin.math.sin
 
 val appModule = module {
     single<EnvConfig>(createdAtStart = true) {
