@@ -21,7 +21,7 @@ jobs:
         run: jq --version
 
       - name: Copy env secrets
-        run: echo "$SECRETS_CONTEXT" > env_temp.json > /dev/null
+        run: echo "$SECRETS_CONTEXT" > env_temp.json
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
