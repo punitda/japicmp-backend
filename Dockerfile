@@ -5,6 +5,9 @@ FROM gradle:8.4
 # Copy project files
 COPY --chown=gradle:gradle . /home/gradle/src
 
+# Copy Env config
+COPY env.json /home/gradle/src/src/main/resources
+
 # Set working directory
 WORKDIR /home/gradle/src
 
