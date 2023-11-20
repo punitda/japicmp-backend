@@ -21,14 +21,14 @@ jobs:
         run: jq --version
 
       - name: Copy env secrets
-        run: echo "$SECRETS_CONTEXT" > env_temp.json
+        run: echo "$SECRETS_CONTEXT" > env_temp.json > /dev/null
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
       - name: Remove few secrets from json
         run: jq 'del(.FLY_API_TOKEN,.github_token)' env_temp.json > env.json && rm env_temp.json
 
-      - name: Deploy to Fly.io
-        run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+#      - name: Deploy to Fly.io
+#        run: flyctl deploy --remote-only
+#        env:
+#          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
