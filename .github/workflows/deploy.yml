@@ -10,20 +10,28 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Flyctl github actions
         uses: superfly/flyctl-actions/setup-flyctl@master
+
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Verify jq installation
         run: jq --version
+
       - name: Copy env secrets
         run: echo "$SECRETS_CONTEXT" > env_temp.json
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
+
       - name: Remove few secrets from json
-        run: jq 'del(.FLY_API_TOKEN,.github_token)' env_temp.json > env.json
-      - name: Log env.json
-        run: cat env.json
-#      - run: flyctl deploy --remote-only
+        run: jq 'del(.FLY_API_TOKEN,.github_token)' env_temp.json > env.json && rm env_temp.json
+
+      - name: Log current directory
+        run: ls -la
+
+#      - name: Deploy to Fly.io
+#        run: flyctl deploy --remote-only
 #        env:
 #          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
