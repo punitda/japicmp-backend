@@ -46,7 +46,7 @@ class ReportRouteTest {
             )
         }
         assertNotNull(response.bodyAsText())
-        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.Created, response.status)
     }
 
     @Test
@@ -61,7 +61,7 @@ class ReportRouteTest {
             )
         }
         assertNotNull(response.bodyAsText())
-        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.Created, response.status)
     }
 
     @Test
