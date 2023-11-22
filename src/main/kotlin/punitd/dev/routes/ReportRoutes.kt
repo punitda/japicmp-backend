@@ -109,7 +109,15 @@ fun Route.createReportMaven() {
 
         // Send HTML Report in response
         val file = outputFiles.first()
-        return@post call.respondFile(file)
+        try {
+            call.response.status(HttpStatusCode.Created)
+            return@post call.respondFile(file)
+        } catch (e: Exception) {
+            // Do nothing
+        } finally {
+            file.delete()
+        }
+
     }
 }
 
@@ -142,7 +150,14 @@ fun Route.createReportFile() {
 
             // Send HTML Report in response
             val file = outputFiles.first()
-            return@post call.respondFile(file)
+            try {
+                call.response.status(HttpStatusCode.Created)
+                return@post call.respondFile(file)
+            } catch (e: Exception) {
+                // Do nothing
+            } finally {
+                file.delete()
+            }
         }.getOrElse {
             return@post call.respondText(
                 text = "Unable to generate report",
