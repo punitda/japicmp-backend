@@ -16,14 +16,16 @@ object ReportGenerator {
     fun generateReport(
         oldArtifactFile: File,
         newArtifactFile: File,
+        outputOnlyModifications : Boolean,
+        outputOnlyBinaryIncompatibleModifications: Boolean,
         oldVersion: String? = "",
         newVersion: String? = "",
     ): List<File> {
         val oldArchive = JApiCmpArchive(oldArtifactFile, oldVersion)
         val newArchive = JApiCmpArchive(newArtifactFile, newVersion)
         val options = Options.newDefault().apply {
-            isOutputOnlyModifications = true
-            isOutputOnlyBinaryIncompatibleModifications = true
+            isOutputOnlyModifications = outputOnlyModifications
+            isOutputOnlyBinaryIncompatibleModifications = outputOnlyBinaryIncompatibleModifications
             setIgnoreMissingClasses(true)
             oldArchives = listOf(oldArchive)
             newArchives = listOf(newArchive)
