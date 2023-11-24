@@ -98,11 +98,9 @@ class ReportRouteTest {
     fun testGenerateReportFileForAar() = testApplication {
         val generateReportByFilesRequestBody = GenerateReportByFilesRequestBody(
             oldFileKeyName = "stripe-android-17.0.0.aar",
-            oldVersion = "17.0.0",
             newFileKeyName = "stripe-android-18.0.0.aar",
-            newVersion = "18.0.0"
         )
-        val resposne = client.post("/report/file") {
+        val response = client.post("/report/file") {
             contentType(ContentType.Application.Json)
             setBody(
                 Json.encodeToString(
@@ -111,16 +109,14 @@ class ReportRouteTest {
                 )
             )
         }
-        println("Body : ${resposne.bodyAsText()}")
+        println("Body : ${response.bodyAsText()}")
     }
 
     @Test
     fun testGenerateReportFileForJar() = testApplication {
         val generateReportByFilesRequestBody = GenerateReportByFilesRequestBody(
             oldFileKeyName = "okhttp-4.0.0.jar",
-            oldVersion = "4.0.0",
             newFileKeyName = "okhttp-4.11.0.jar",
-            newVersion = "4.11.0"
         )
         val resposne = client.post("/report/file") {
             contentType(ContentType.Application.Json)

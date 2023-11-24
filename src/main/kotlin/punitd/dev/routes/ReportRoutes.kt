@@ -129,7 +129,7 @@ fun Route.createReportFile() {
         val requestBody = runCatching { call.receiveNullable<GenerateReportByFilesRequestBody>() }.getOrNull()
             ?: throw MissingFieldException("Missing fields in request body")
 
-        val (oldFileKeyName, oldVersion, newFileKeyName, newVersion) = requestBody
+        val (oldFileKeyName, newFileKeyName) = requestBody
 
         runCatching {
             val oldFilePath = "build/${oldFileKeyName}"
@@ -143,9 +143,7 @@ fun Route.createReportFile() {
 
             val outputFiles = ReportGenerator.generateReport(
                 oldArtifactFile = if (isAar) aarToClassesJar(File(oldFilePath))!! else File(oldFilePath),
-                oldVersion = oldVersion,
                 newArtifactFile = if (isAar) aarToClassesJar(File(newFilePath))!! else File(newFilePath),
-                newVersion = newVersion
             )
 
             // Send HTML Report in response

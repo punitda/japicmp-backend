@@ -15,9 +15,9 @@ object ReportGenerator {
 
     fun generateReport(
         oldArtifactFile: File,
-        oldVersion: String,
         newArtifactFile: File,
-        newVersion: String
+        oldVersion: String? = "",
+        newVersion: String? = "",
     ): List<File> {
         val oldArchive = JApiCmpArchive(oldArtifactFile, oldVersion)
         val newArchive = JApiCmpArchive(newArtifactFile, newVersion)
