@@ -48,7 +48,7 @@ fun Route.createReportMaven() {
             ?: throw MissingFieldException("Missing fields in request body")
 
         // Package name validation
-        val (oldPackageName, newPackageName) = requestBody
+        val (oldPackageName, newPackageName, outputOnlyModifications, outputOnlyBinaryIncompatibleModifications) = requestBody
         if (!oldPackageName.isValidPackageName() || !newPackageName.isValidPackageName()) {
             return@post call.respondText(
                 text = Constants.INVALID_PACKAGE_NAME,
@@ -104,7 +104,9 @@ fun Route.createReportMaven() {
             oldArtifactFile = oldArtifact,
             oldVersion = oldVersion,
             newArtifactFile = newArtifact,
-            newVersion = newVersion
+            newVersion = newVersion,
+            outputOnlyModifications = outputOnlyModifications,
+            outputOnlyBinaryIncompatibleModifications = outputOnlyBinaryIncompatibleModifications,
         )
 
         // Send HTML Report in response
@@ -129,7 +131,7 @@ fun Route.createReportFile() {
         val requestBody = runCatching { call.receiveNullable<GenerateReportByFilesRequestBody>() }.getOrNull()
             ?: throw MissingFieldException("Missing fields in request body")
 
-        val (oldFileKeyName, newFileKeyName) = requestBody
+        val (oldFileKeyName, newFileKeyName, outputOnlyModifications, outputOnlyBinaryIncompatibleModifications) = requestBody
 
         runCatching {
             val oldFilePath = "build/${oldFileKeyName}"
@@ -144,6 +146,8 @@ fun Route.createReportFile() {
             val outputFiles = ReportGenerator.generateReport(
                 oldArtifactFile = if (isAar) aarToClassesJar(File(oldFilePath))!! else File(oldFilePath),
                 newArtifactFile = if (isAar) aarToClassesJar(File(newFilePath))!! else File(newFilePath),
+                outputOnlyModifications = outputOnlyModifications,
+                outputOnlyBinaryIncompatibleModifications = outputOnlyBinaryIncompatibleModifications,
             )
 
             // Send HTML Report in response
