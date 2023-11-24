@@ -127,7 +127,6 @@ class ReportRouteTest {
                 )
             )
         }
-        println("Body : ${response.bodyAsText()}")
     }
 
     @Test
@@ -141,6 +140,5 @@ class ReportRouteTest {
                 )
             )
         }
-        println("Body : ${response.bodyAsText()}")
     }
 }
