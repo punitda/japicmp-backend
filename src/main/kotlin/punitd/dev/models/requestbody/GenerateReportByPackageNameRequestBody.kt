@@ -6,4 +6,6 @@ import kotlinx.serialization.Serializable
 data class GenerateReportByPackageNameRequestBody(
     val oldPackageName: String,
     val newPackageName: String,
+    val outputOnlyModifications: Boolean,
+    val outputOnlyBinaryIncompatibleModifications: Boolean,
 )

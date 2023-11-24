@@ -14,24 +14,46 @@ import kotlin.test.assertNotNull
 
 class ReportRouteTest {
 
-    private val validAarPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
+    private val validAarPackageNamesInRequestBodyForMaven = GenerateReportByPackageNameRequestBody(
         oldPackageName = "com.stripe:stripe-android:18.0.0",
-        newPackageName = "com.stripe:stripe-android:19.0.0"
+        newPackageName = "com.stripe:stripe-android:19.0.0",
+        outputOnlyModifications = true,
+        outputOnlyBinaryIncompatibleModifications = true,
     )
 
-    private val validJarPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
+    private val validJarPackageNamesInRequestBodyForMaven = GenerateReportByPackageNameRequestBody(
         oldPackageName = "com.squareup.okhttp3:okhttp:4.11.0",
-        newPackageName = "com.squareup.okhttp3:okhttp:4.12.0"
+        newPackageName = "com.squareup.okhttp3:okhttp:4.12.0",
+        outputOnlyModifications = true,
+        outputOnlyBinaryIncompatibleModifications = true,
     )
 
-    private val unavailablePackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
+    private val unavailablePackageNamesInRequestBodyForMaven = GenerateReportByPackageNameRequestBody(
         oldPackageName = "com.x:x:1.0.0",
-        newPackageName = "com.x:x:2.0.0"
+        newPackageName = "com.x:x:2.0.0",
+        outputOnlyModifications = false,
+        outputOnlyBinaryIncompatibleModifications = false,
     )
 
-    private val invalidPackageNamesInRequestBody = GenerateReportByPackageNameRequestBody(
+    private val invalidPackageNamesInRequestBodyForMaven = GenerateReportByPackageNameRequestBody(
         oldPackageName = "com:okhttp",
-        newPackageName = "com:okhttp"
+        newPackageName = "com:okhttp",
+        outputOnlyModifications = false,
+        outputOnlyBinaryIncompatibleModifications = false,
+    )
+
+    private val validGenerateReportByFilesRequestBodyForAar = GenerateReportByFilesRequestBody(
+        oldFileKeyName = "stripe-android-17.0.0.aar",
+        newFileKeyName = "stripe-android-18.0.0.aar",
+        outputOnlyModifications = true,
+        outputOnlyBinaryIncompatibleModifications = true,
+    )
+
+    private val validGenerateReportByFilesRequestBodyForJar = GenerateReportByFilesRequestBody(
+        oldFileKeyName = "okhttp-4.0.0.jar",
+        newFileKeyName = "okhttp-4.11.0.jar",
+        outputOnlyModifications = false,
+        outputOnlyBinaryIncompatibleModifications = false,
     )
 
     @Test
@@ -41,7 +63,7 @@ class ReportRouteTest {
             setBody(
                 Json.encodeToString(
                     GenerateReportByPackageNameRequestBody.serializer(),
-                    validAarPackageNamesInRequestBody
+                    validAarPackageNamesInRequestBodyForMaven
                 )
             )
         }
@@ -56,7 +78,7 @@ class ReportRouteTest {
             setBody(
                 Json.encodeToString(
                     GenerateReportByPackageNameRequestBody.serializer(),
-                    validJarPackageNamesInRequestBody
+                    validJarPackageNamesInRequestBodyForMaven
                 )
             )
         }
@@ -71,7 +93,7 @@ class ReportRouteTest {
             setBody(
                 Json.encodeToString(
                     GenerateReportByPackageNameRequestBody.serializer(),
-                    unavailablePackageNamesInRequestBody
+                    unavailablePackageNamesInRequestBodyForMaven
                 )
             )
         }
@@ -86,7 +108,7 @@ class ReportRouteTest {
             setBody(
                 Json.encodeToString(
                     GenerateReportByPackageNameRequestBody.serializer(),
-                    invalidPackageNamesInRequestBody
+                    invalidPackageNamesInRequestBodyForMaven
                 )
             )
         }
@@ -96,41 +118,27 @@ class ReportRouteTest {
 
     @Test
     fun testGenerateReportFileForAar() = testApplication {
-        val generateReportByFilesRequestBody = GenerateReportByFilesRequestBody(
-            oldFileKeyName = "stripe-android-17.0.0.aar",
-            oldVersion = "17.0.0",
-            newFileKeyName = "stripe-android-18.0.0.aar",
-            newVersion = "18.0.0"
-        )
-        val resposne = client.post("/report/file") {
+        val response = client.post("/report/file") {
             contentType(ContentType.Application.Json)
             setBody(
                 Json.encodeToString(
                     GenerateReportByFilesRequestBody.serializer(),
-                    generateReportByFilesRequestBody
+                    validGenerateReportByFilesRequestBodyForAar
                 )
             )
         }
-        println("Body : ${resposne.bodyAsText()}")
     }
 
     @Test
     fun testGenerateReportFileForJar() = testApplication {
-        val generateReportByFilesRequestBody = GenerateReportByFilesRequestBody(
-            oldFileKeyName = "okhttp-4.0.0.jar",
-            oldVersion = "4.0.0",
-            newFileKeyName = "okhttp-4.11.0.jar",
-            newVersion = "4.11.0"
-        )
-        val resposne = client.post("/report/file") {
+        val response = client.post("/report/file") {
             contentType(ContentType.Application.Json)
             setBody(
                 Json.encodeToString(
                     GenerateReportByFilesRequestBody.serializer(),
-                    generateReportByFilesRequestBody
+                    validGenerateReportByFilesRequestBodyForJar
                 )
             )
         }
-        println("Body : ${resposne.bodyAsText()}")
     }
 }
