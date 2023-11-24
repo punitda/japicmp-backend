@@ -123,7 +123,7 @@ class ReportRouteTest {
             setBody(
                 Json.encodeToString(
                     GenerateReportByFilesRequestBody.serializer(),
-                    this@ReportRouteTest.validGenerateReportByFilesRequestBodyForAar
+                    validGenerateReportByFilesRequestBodyForAar
                 )
             )
         }
@@ -137,7 +137,7 @@ class ReportRouteTest {
             setBody(
                 Json.encodeToString(
                     GenerateReportByFilesRequestBody.serializer(),
-                    this@ReportRouteTest.validGenerateReportByFilesRequestBodyForJar
+                    validGenerateReportByFilesRequestBodyForJar
                 )
             )
         }
