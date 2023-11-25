@@ -4,7 +4,9 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.callid.*
 import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
 import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import org.koin.ktor.plugin.Koin
@@ -22,6 +24,10 @@ fun Application.module() {
     install(Koin) {
         slf4jLogger()
         modules(appModule)
+    }
+    install(CallId) {
+        generate(16)
+        replyToHeader(HttpHeaders.XRequestId)
     }
     install(Resources)
     install(StatusPages) {

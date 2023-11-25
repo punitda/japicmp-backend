@@ -74,13 +74,14 @@ fun Route.createReportMaven() {
 
         val fileResults = mavenRepository.downloadFiles(
             oldArtifactResult = oldArtifactResult,
-            newArtifactResult = newArtifactResult
+            newArtifactResult = newArtifactResult,
+            folderName = call.response.headers[HttpHeaders.XRequestId] ?: oldPackageName,
         )
 
         if (fileResults.any { it == null } || fileResults.size != 2) {
             return@post call.respondText(
-                text = "Unable to download files from Maven",
-                status = HttpStatusCode.BadRequest
+                text = "Unable to download files from Maven. Please try again",
+                status = HttpStatusCode.InternalServerError
             )
         }
 
@@ -95,7 +96,7 @@ fun Route.createReportMaven() {
         val (oldArtifact, newArtifact) = artifacts
         if (oldArtifact == null || newArtifact == null) {
             return@post call.respondText(
-                text = "Unable to find artifact files",
+                text = "Unable to find artifact files. Please try again",
                 status = HttpStatusCode.InternalServerError
             )
         }
@@ -113,11 +114,15 @@ fun Route.createReportMaven() {
         val file = outputFiles.first()
         try {
             call.response.status(HttpStatusCode.Created)
-            return@post call.respondFile(file)
+            call.respondFile(file)
         } catch (e: Exception) {
             // Do nothing
         } finally {
-            file.delete()
+            val requestId = call.response.headers[HttpHeaders.XRequestId]
+            val outputDirectory = File("build/${requestId}")
+            if (outputDirectory.exists()) {
+                outputDirectory.deleteRecursively()
+            }
         }
 
     }

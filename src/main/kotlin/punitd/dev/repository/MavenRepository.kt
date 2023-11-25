@@ -11,10 +11,13 @@ import kotlinx.coroutines.coroutineScope
 import punitd.dev.models.response.ArtifactResult
 import punitd.dev.models.response.MavenSearchResponse
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import kotlin.io.path.absolute
 
 interface MavenRepository {
     suspend fun searchPackages(oldPackageName: String, newPackageName: String): List<MavenSearchResponse?>
-    suspend fun downloadFiles(oldArtifactResult: ArtifactResult, newArtifactResult: ArtifactResult): List<File?>
+    suspend fun downloadFiles(oldArtifactResult: ArtifactResult, newArtifactResult: ArtifactResult, folderName: String): List<File?>
 }
 
 class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
@@ -31,11 +34,12 @@ class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
 
     override suspend fun downloadFiles(
         oldArtifactResult: ArtifactResult,
-        newArtifactResult: ArtifactResult
+        newArtifactResult: ArtifactResult,
+        folderName: String,
     ): List<File?> =
         coroutineScope {
-            val oldFile = async { downloadFile(oldArtifactResult) }
-            val newFile = async { downloadFile(newArtifactResult) }
+            val oldFile = async { downloadFile(oldArtifactResult, folderName) }
+            val newFile = async { downloadFile(newArtifactResult, folderName) }
             return@coroutineScope awaitAll<File?>(oldFile, newFile)
         }
 
@@ -49,11 +53,15 @@ class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
         }.getOrNull()
     }
 
-    private suspend fun downloadFile(artifactResult: ArtifactResult): File? {
+    private suspend fun downloadFile(artifactResult: ArtifactResult, folderName: String): File? {
         return runCatching {
+            val dirPath = Paths.get("build/${folderName}")
+            if(!Files.exists(dirPath)){
+                Files.createDirectory(dirPath)
+            }
             // Local file path where we need to copy jar/aar
             val file = File(
-                "build",
+                dirPath.absolute().toString(),
                 "${artifactResult.artifactId}-${artifactResult.version}.${artifactResult.format}"
             )
 
