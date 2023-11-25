@@ -16,7 +16,11 @@ import kotlin.io.path.absolute
 
 interface MavenRepository {
     suspend fun searchPackages(oldPackageName: String, newPackageName: String): List<MavenSearchResponse?>
-    suspend fun downloadFiles(oldArtifactResult: ArtifactResult, newArtifactResult: ArtifactResult, folderName: String): List<File?>
+    suspend fun downloadFiles(
+        oldArtifactResult: ArtifactResult,
+        newArtifactResult: ArtifactResult,
+        dirPath: String,
+    ): List<File?>
 }
 
 class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
@@ -34,11 +38,11 @@ class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
     override suspend fun downloadFiles(
         oldArtifactResult: ArtifactResult,
         newArtifactResult: ArtifactResult,
-        folderName: String,
+        dirPath: String,
     ): List<File?> =
         coroutineScope {
-            val oldFile = async { downloadFile(oldArtifactResult, folderName) }
-            val newFile = async { downloadFile(newArtifactResult, folderName) }
+            val oldFile = async { downloadFile(oldArtifactResult, dirPath) }
+            val newFile = async { downloadFile(newArtifactResult, dirPath) }
             return@coroutineScope awaitAll<File?>(oldFile, newFile)
         }
 
@@ -52,12 +56,11 @@ class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
         }.getOrNull()
     }
 
-    private suspend fun downloadFile(artifactResult: ArtifactResult, requestId: String): File? {
+    private suspend fun downloadFile(artifactResult: ArtifactResult, dirPath: String): File? {
         return runCatching {
-            val dirPath = FileUtil.createOutputDirectoryForRequest(requestId)
             // Local file path where we need to copy jar/aar
             val file = File(
-                dirPath.absolute().toString(),
+                dirPath,
                 "${artifactResult.artifactId}-${artifactResult.version}.${artifactResult.format}"
             )
 

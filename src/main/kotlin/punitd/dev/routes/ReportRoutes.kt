@@ -20,7 +20,6 @@ import punitd.dev.util.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.nio.file.Files
 import kotlin.io.path.absolute
 
 @Resource("/report")
@@ -73,10 +72,11 @@ fun Route.createReportMaven() {
         val oldArtifactResult = oldPackageSearchResult?.artifactResult()!!
         val newArtifactResult = newPackageSearchResult?.artifactResult()!!
 
+        val dirPath = FileUtil.createOutputDirectoryForRequest(requestId ?: oldPackageName).absolute().toString()
         val fileResults = mavenRepository.downloadFiles(
             oldArtifactResult = oldArtifactResult,
             newArtifactResult = newArtifactResult,
-            folderName = requestId ?: oldPackageName,
+            dirPath = dirPath,
         )
 
         if (fileResults.any { it == null } || fileResults.size != 2) {
