@@ -18,6 +18,7 @@ object ReportGenerator {
         newArtifactFile: File,
         outputOnlyModifications : Boolean,
         outputOnlyBinaryIncompatibleModifications: Boolean,
+        outputReportPath: String,
         oldVersion: String? = "",
         newVersion: String? = "",
     ): List<File> {
@@ -30,7 +31,7 @@ object ReportGenerator {
             oldArchives = listOf(oldArchive)
             newArchives = listOf(newArchive)
             accessModifier = AccessModifier.PUBLIC
-            htmlOutputFile = Optional.of("build/report.html")
+            htmlOutputFile = Optional.of(outputReportPath)
         }
 
         val jApiClasses = compareArchives(

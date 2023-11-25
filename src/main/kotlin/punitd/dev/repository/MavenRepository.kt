@@ -10,11 +10,17 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import punitd.dev.models.response.ArtifactResult
 import punitd.dev.models.response.MavenSearchResponse
+import punitd.dev.util.FileUtil
 import java.io.File
+import kotlin.io.path.absolute
 
 interface MavenRepository {
     suspend fun searchPackages(oldPackageName: String, newPackageName: String): List<MavenSearchResponse?>
-    suspend fun downloadFiles(oldArtifactResult: ArtifactResult, newArtifactResult: ArtifactResult): List<File?>
+    suspend fun downloadFiles(
+        oldArtifactResult: ArtifactResult,
+        newArtifactResult: ArtifactResult,
+        dirPath: String,
+    ): List<File?>
 }
 
 class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
@@ -31,11 +37,12 @@ class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
 
     override suspend fun downloadFiles(
         oldArtifactResult: ArtifactResult,
-        newArtifactResult: ArtifactResult
+        newArtifactResult: ArtifactResult,
+        dirPath: String,
     ): List<File?> =
         coroutineScope {
-            val oldFile = async { downloadFile(oldArtifactResult) }
-            val newFile = async { downloadFile(newArtifactResult) }
+            val oldFile = async { downloadFile(oldArtifactResult, dirPath) }
+            val newFile = async { downloadFile(newArtifactResult, dirPath) }
             return@coroutineScope awaitAll<File?>(oldFile, newFile)
         }
 
@@ -49,11 +56,11 @@ class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
         }.getOrNull()
     }
 
-    private suspend fun downloadFile(artifactResult: ArtifactResult): File? {
+    private suspend fun downloadFile(artifactResult: ArtifactResult, dirPath: String): File? {
         return runCatching {
             // Local file path where we need to copy jar/aar
             val file = File(
-                "build",
+                dirPath,
                 "${artifactResult.artifactId}-${artifactResult.version}.${artifactResult.format}"
             )
 
