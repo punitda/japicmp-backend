@@ -16,13 +16,12 @@ import punitd.dev.manager.ReportGenerator
 import punitd.dev.models.requestbody.GenerateReportByFilesRequestBody
 import punitd.dev.models.requestbody.GenerateReportByPackageNameRequestBody
 import punitd.dev.repository.MavenRepository
-import punitd.dev.util.Constants
-import punitd.dev.util.EnvConfig
-import punitd.dev.util.MissingFieldException
-import punitd.dev.util.isValidPackageName
+import punitd.dev.util.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.file.Files
+import kotlin.io.path.absolute
 
 @Resource("/report")
 private class ReportPath {
@@ -49,6 +48,8 @@ fun Route.createReportMaven() {
 
         // Package name validation
         val (oldPackageName, newPackageName, outputOnlyModifications, outputOnlyBinaryIncompatibleModifications) = requestBody
+        val requestId = call.response.headers[HttpHeaders.XRequestId]
+
         if (!oldPackageName.isValidPackageName() || !newPackageName.isValidPackageName()) {
             return@post call.respondText(
                 text = Constants.INVALID_PACKAGE_NAME,
@@ -75,7 +76,7 @@ fun Route.createReportMaven() {
         val fileResults = mavenRepository.downloadFiles(
             oldArtifactResult = oldArtifactResult,
             newArtifactResult = newArtifactResult,
-            folderName = call.response.headers[HttpHeaders.XRequestId] ?: oldPackageName,
+            folderName = requestId ?: oldPackageName,
         )
 
         if (fileResults.any { it == null } || fileResults.size != 2) {
@@ -106,23 +107,21 @@ fun Route.createReportMaven() {
             oldVersion = oldVersion,
             newArtifactFile = newArtifact,
             newVersion = newVersion,
+            outputReportPath = "build/${requestId}/report.html",
             outputOnlyModifications = outputOnlyModifications,
             outputOnlyBinaryIncompatibleModifications = outputOnlyBinaryIncompatibleModifications,
         )
 
-        // Send HTML Report in response
-        val file = outputFiles.first()
+
         try {
+            // Send HTML Report in response
+            val file = outputFiles.first()
             call.response.status(HttpStatusCode.Created)
             call.respondFile(file)
         } catch (e: Exception) {
             // Do nothing
         } finally {
-            val requestId = call.response.headers[HttpHeaders.XRequestId]
-            val outputDirectory = File("build/${requestId}")
-            if (outputDirectory.exists()) {
-                outputDirectory.deleteRecursively()
-            }
+            FileUtil.deleteOutputDirectoryForRequest(requestId ?: oldPackageName)
         }
 
     }
@@ -137,10 +136,12 @@ fun Route.createReportFile() {
             ?: throw MissingFieldException("Missing fields in request body")
 
         val (oldFileKeyName, newFileKeyName, outputOnlyModifications, outputOnlyBinaryIncompatibleModifications) = requestBody
+        val requestId = call.response.headers[HttpHeaders.XRequestId]
 
         runCatching {
-            val oldFilePath = "build/${oldFileKeyName}"
-            val newFilePath = "build/${newFileKeyName}"
+            val dirPath = FileUtil.createOutputDirectoryForRequest(requestId ?: oldFileKeyName)
+            val oldFilePath = "${dirPath.absolute()}/${oldFileKeyName}"
+            val newFilePath = "${dirPath.absolute()}/${newFileKeyName}"
             val olds3Object = s3.getObject(envConfig.BUCKET_NAME, oldFileKeyName)
             convertS3ObjectToFile(olds3Object, oldFilePath)
             val news3Object = s3.getObject(envConfig.BUCKET_NAME, newFileKeyName)
@@ -151,19 +152,21 @@ fun Route.createReportFile() {
             val outputFiles = ReportGenerator.generateReport(
                 oldArtifactFile = if (isAar) aarToClassesJar(File(oldFilePath))!! else File(oldFilePath),
                 newArtifactFile = if (isAar) aarToClassesJar(File(newFilePath))!! else File(newFilePath),
+                outputReportPath = "build/${requestId}/report.html",
                 outputOnlyModifications = outputOnlyModifications,
                 outputOnlyBinaryIncompatibleModifications = outputOnlyBinaryIncompatibleModifications,
             )
 
-            // Send HTML Report in response
-            val file = outputFiles.first()
+
             try {
+                // Send HTML Report in response
+                val file = outputFiles.first()
                 call.response.status(HttpStatusCode.Created)
-                return@post call.respondFile(file)
+                call.respondFile(file)
             } catch (e: Exception) {
                 // Do nothing
             } finally {
-                file.delete()
+                FileUtil.deleteOutputDirectoryForRequest(requestId ?: oldFileKeyName)
             }
         }.getOrElse {
             return@post call.respondText(

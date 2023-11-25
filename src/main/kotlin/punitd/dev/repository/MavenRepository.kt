@@ -10,9 +10,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import punitd.dev.models.response.ArtifactResult
 import punitd.dev.models.response.MavenSearchResponse
+import punitd.dev.util.FileUtil
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 import kotlin.io.path.absolute
 
 interface MavenRepository {
@@ -53,12 +52,9 @@ class MavenRepositoryImpl(private val client: HttpClient) : MavenRepository {
         }.getOrNull()
     }
 
-    private suspend fun downloadFile(artifactResult: ArtifactResult, folderName: String): File? {
+    private suspend fun downloadFile(artifactResult: ArtifactResult, requestId: String): File? {
         return runCatching {
-            val dirPath = Paths.get("build/${folderName}")
-            if(!Files.exists(dirPath)){
-                Files.createDirectory(dirPath)
-            }
+            val dirPath = FileUtil.createOutputDirectoryForRequest(requestId)
             // Local file path where we need to copy jar/aar
             val file = File(
                 dirPath.absolute().toString(),
