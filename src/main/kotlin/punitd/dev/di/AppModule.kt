@@ -15,6 +15,8 @@ import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 import punitd.dev.repository.MavenRepository
 import punitd.dev.repository.MavenRepositoryImpl
+import punitd.dev.repository.StorageRepository
+import punitd.dev.repository.StorageRepositoryImpl
 import punitd.dev.util.EnvConfig
 
 val appModule = module {
@@ -52,4 +54,5 @@ val appModule = module {
     }
 
     factory<MavenRepository> { MavenRepositoryImpl(get()) }
+    factory<StorageRepository> { StorageRepositoryImpl(get(), get()) }
 }

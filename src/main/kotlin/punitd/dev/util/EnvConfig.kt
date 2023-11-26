@@ -6,4 +6,5 @@ data class EnvConfig(
     val AWS_SERVICE_ENDPOINT_R2: String,
     val AWS_SIGNING_REGION: String,
     val BUCKET_NAME: String,
+    val REPORT_BUCKET_NAME: String,
 )
