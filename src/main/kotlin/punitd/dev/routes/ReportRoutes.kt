@@ -1,7 +1,5 @@
 package punitd.dev.routes
 
-import com.amazonaws.services.s3.AmazonS3
-import com.amazonaws.services.s3.model.S3Object
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
@@ -15,11 +13,14 @@ import punitd.dev.manager.FileManager.aarToClassesJar
 import punitd.dev.manager.ReportGenerator
 import punitd.dev.models.requestbody.GenerateReportByFilesRequestBody
 import punitd.dev.models.requestbody.GenerateReportByPackageNameRequestBody
+import punitd.dev.models.response.GeneratePreSignedUrlResponse
 import punitd.dev.repository.MavenRepository
-import punitd.dev.util.*
+import punitd.dev.repository.StorageRepository
+import punitd.dev.util.Constants
+import punitd.dev.util.FileUtil
+import punitd.dev.util.MissingFieldException
+import punitd.dev.util.isValidPackageName
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import kotlin.io.path.absolute
 
 @Resource("/report")
@@ -41,6 +42,7 @@ fun Application.reportRoutes() {
 
 fun Route.createReportMaven() {
     val mavenRepository by inject<MavenRepository>()
+    val storageRepository by inject<StorageRepository>()
     post<ReportPath.Maven> {
         val requestBody = runCatching { call.receiveNullable<GenerateReportByPackageNameRequestBody>() }.getOrNull()
             ?: throw MissingFieldException("Missing fields in request body")
@@ -113,24 +115,18 @@ fun Route.createReportMaven() {
         )
 
 
-        try {
-            // Send HTML Report in response
-            val file = outputFiles.first()
-            call.response.status(HttpStatusCode.Created)
-            call.respondFile(file)
-        } catch (e: Exception) {
-            // Do nothing
-        } finally {
-            FileUtil.deleteOutputDirectoryForRequest(requestId ?: oldPackageName)
-        }
-
+        // Upload report to object storage
+        val file = outputFiles.first()
+        call.sendReport(
+            storageRepository = storageRepository,
+            file = file,
+            requestId = requestId ?: oldPackageName
+        )
     }
 }
 
 fun Route.createReportFile() {
-    val envConfig by inject<EnvConfig>()
-    val s3 by inject<AmazonS3>()
-
+    val storageRepository by inject<StorageRepository>()
     post<ReportPath.File> {
         val requestBody = runCatching { call.receiveNullable<GenerateReportByFilesRequestBody>() }.getOrNull()
             ?: throw MissingFieldException("Missing fields in request body")
@@ -142,10 +138,8 @@ fun Route.createReportFile() {
             val dirPath = FileUtil.createOutputDirectoryForRequest(requestId ?: oldFileKeyName)
             val oldFilePath = "${dirPath.absolute()}/${oldFileKeyName}"
             val newFilePath = "${dirPath.absolute()}/${newFileKeyName}"
-            val olds3Object = s3.getObject(envConfig.BUCKET_NAME, oldFileKeyName)
-            convertS3ObjectToFile(olds3Object, oldFilePath)
-            val news3Object = s3.getObject(envConfig.BUCKET_NAME, newFileKeyName)
-            convertS3ObjectToFile(news3Object, newFilePath)
+            storageRepository.downloadFile(oldFileKeyName, oldFilePath)
+            storageRepository.downloadFile(newFileKeyName, newFilePath)
 
             val isAar = oldFileKeyName.contains("aar") && newFileKeyName.contains("aar")
 
@@ -158,16 +152,13 @@ fun Route.createReportFile() {
             )
 
 
-            try {
-                // Send HTML Report in response
-                val file = outputFiles.first()
-                call.response.status(HttpStatusCode.Created)
-                call.respondFile(file)
-            } catch (e: Exception) {
-                // Do nothing
-            } finally {
-                FileUtil.deleteOutputDirectoryForRequest(requestId ?: oldFileKeyName)
-            }
+            // Upload report to object storage
+            val file = outputFiles.first()
+            call.sendReport(
+                storageRepository = storageRepository,
+                file = file,
+                requestId = requestId ?: oldFileKeyName
+            )
         }.getOrElse {
             return@post call.respondText(
                 text = "Unable to generate report",
@@ -177,18 +168,27 @@ fun Route.createReportFile() {
     }
 }
 
-private fun convertS3ObjectToFile(s3Object: S3Object, localFilePath: String) {
+suspend fun ApplicationCall.sendReport(storageRepository: StorageRepository, file: File, requestId: String) {
     try {
-        s3Object.objectContent.use { inputStream ->
-            FileOutputStream(localFilePath).use { fileOutputStream ->
-                val buffer = ByteArray(4096)
-                var bytesRead: Int
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                    fileOutputStream.write(buffer, 0, bytesRead)
-                }
-            }
-        }
-    } catch (e: IOException) {
-        e.printStackTrace()
+        // Upload report to object storage
+        val objectKey = "${requestId}-report"
+        storageRepository.uploadFile(key = objectKey, file = file)
+
+        // Generate presigned url for client to access report
+        val preSignedUrl = storageRepository.generatePresignedUrlRequestForReport(objectKey)
+
+        this.response.status(HttpStatusCode.Created)
+        this.respond(
+            GeneratePreSignedUrlResponse(
+                preSignedUrl = preSignedUrl,
+                objectKey = objectKey
+            ),
+        )
+    } catch (e: Exception) {
+        // Do nothing
+    } finally {
+        FileUtil.deleteOutputDirectoryForRequest(requestId)
     }
 }
+
+
