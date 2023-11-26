@@ -26,7 +26,7 @@ fun Application.module() {
         modules(appModule)
     }
     install(CallId) {
-        generate(16)
+        generate(16, "abcdefghijklmnopqrstuvwxyz0123456789")
         replyToHeader(HttpHeaders.XRequestId)
     }
     install(Resources)
