@@ -83,7 +83,7 @@ fun Route.createReportMaven() {
 
         if (fileResults.any { it == null } || fileResults.size != 2) {
             return@post call.respondText(
-                text = "Unable to download files from Maven. Please try again",
+                text = "We're unable to download files from Maven. If you're sure the package exists on Maven, please try again",
                 status = HttpStatusCode.InternalServerError
             )
         }
