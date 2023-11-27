@@ -35,7 +35,7 @@ class StorageRepositoryImpl(
 
     override fun generatePresignedUrlRequestForReport(key: String): String {
         val bucket = envConfig.REPORT_BUCKET_NAME
-        val expirationTime = Date().time + 1000 * 2 * 60 // 2 min expiration
+        val expirationTime = Date().time + 1000 * 5 * 60 // 5 min expiration
 
         val generatePresignedUrlRequest = GeneratePresignedUrlRequest(bucket, key)
             .withExpiration(Date(expirationTime))
